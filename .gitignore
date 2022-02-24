@@ -47,8 +47,8 @@ release.properties
 dependency-reduced-pom.xml
 
 #own
-/src/main/WebContent/META-INF/context.xml
-/src/main/WebContent/META-INF/MANIFEST.MF
+/WebContent/META-INF/context.xml
+/WebContent/META-INF/MANIFEST.MF
 /src/com/zc/credentialsVault/EmailCredentialsVault.java
 /WebContent/jquery
 

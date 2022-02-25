@@ -51,6 +51,6 @@ dependency-reduced-pom.xml
 /WebContent/META-INF/MANIFEST.MF
 /src/com/zc/credentialsVault/EmailCredentialsVault.java
 /WebContent/jquery
-
+/src/com/zc/tempcode
 #images
 *.png

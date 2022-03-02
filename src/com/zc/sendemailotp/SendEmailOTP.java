@@ -10,11 +10,11 @@ import com.zc.loginservlet.UserDetailClass;
 import com.zc.mfacredentials.OTPCodeGenerator;
 import com.zc.mfacredentials.SessionInfoGenerator;
 
-import org.json.simple.JSONObject;
+import org.json.JSONObject;
 
 public class SendEmailOTP {
 
-	@SuppressWarnings({ "static-access", "unchecked" })
+	@SuppressWarnings("static-access")
 	public JSONObject sendEmailOTP(String useremail) throws ServletException, AddressException, MessagingException {
 
 		JSONObject userMfa = new JSONObject();

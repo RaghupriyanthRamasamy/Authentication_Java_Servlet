@@ -49,7 +49,7 @@ dependency-reduced-pom.xml
 #own
 /WebContent/META-INF/context.xml
 /WebContent/META-INF/MANIFEST.MF
-/src/com/zc/credentialsVault/EmailCredentialsVault.java
+/src/com/zc/credentialsVault
 /WebContent/jquery
 /src/com/zc/tempcode
 #images

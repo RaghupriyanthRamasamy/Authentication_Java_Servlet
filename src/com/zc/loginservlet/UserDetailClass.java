@@ -75,6 +75,8 @@ public class UserDetailClass {
 			String user_id = null;
 			if (rs.next()) {
 				user_id = rs.getString(1);
+			}else {
+				return false;
 			}
 
 			String getByteQuery = "SELECT bytesalt from userdetail WHERE user_id = ?";

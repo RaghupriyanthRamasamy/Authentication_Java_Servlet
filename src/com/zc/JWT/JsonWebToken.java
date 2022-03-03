@@ -4,6 +4,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import org.json.JSONObject;
 
@@ -14,6 +15,7 @@ import com.auth0.jwt.exceptions.JWTCreationException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.auth0.jwt.interfaces.DecodedJWT;
+
 import com.zc.credentialsVault.JWTCredentialsVault;
 
 public class JsonWebToken {
@@ -60,7 +62,7 @@ public class JsonWebToken {
 		}
 	}
 	
-	public JSONObject IDToken(String useremail) {
+	public JSONObject IDToken(String useremail, int mfaEnrollmentStatus) {
 		JWTCredentialsVault jwtCV = new JWTCredentialsVault(); 
 		
 		try {
@@ -72,27 +74,48 @@ public class JsonWebToken {
 		    Date iatDate = new Date(iat);
 		    Date expDate = new Date(exp);
 		    
-		    Map<String, Object> providerUserInfo = new HashMap<String, Object>();
-		    providerUserInfo.put("federatedId", useremail);
-		    providerUserInfo.put("email", useremail);
-		    providerUserInfo.put("rawId", useremail);
+		    Map<String, Object> payloadClaims = new HashMap<>();
+		    payloadClaims.put("email_verified", true);
+		    payloadClaims.put("email", useremail);
+		    payloadClaims.put("iat", iat);
+		    payloadClaims.put("exp", exp);
+		    
+		    if (mfaEnrollmentStatus == 0) {
+		    	payloadClaims.put("mfa_status", "mfa not enrolled");
+		    	payloadClaims.put("mfa_verified", "mfa not enrolled");
+		    	payloadClaims.put("auth_status", "fully authenticated");
+			}
+		    
+		    if (mfaEnrollmentStatus == 1) {
+		    	Map<String, Object> providerUserInfo = new HashMap<String, Object>();
+			    providerUserInfo.put("federatedId", useremail);
+			    providerUserInfo.put("email", useremail);
+			    providerUserInfo.put("rawId", useremail);
+			    payloadClaims.put("providerUserInfo", providerUserInfo);
+			}
 		    
 		    Map<String, Object> mfaInfo = new HashMap<String, Object>();
-		    mfaInfo.put("mfaEnrollemntId", "01");
-		    mfaInfo.put("email", useremail);
-		    mfaInfo.put("displayName", "email");
+		    
+		    if (mfaEnrollmentStatus == 0)
+		    	mfaInfo.put("mfaEnrollemntId", 0);
+		    
+		    if (mfaEnrollmentStatus == 1) {
+		    	payloadClaims.put("mfa_status", "mfa enrolled");
+		    	payloadClaims.put("mfa_verified", "mfa verified");
+		    	mfaInfo.put("mfaEnrollemntId", 1);
+			    mfaInfo.put("email", useremail);
+			    mfaInfo.put("displayName", "email");
+		    }
+		    
+		    payloadClaims.put("mfaInfo", mfaInfo);
 		    
 		    String idToken = JWT.create()
 			        .withIssuer("localhost")
-			        .withClaim("email_verified", true)
-			        .withClaim("email", useremail)
-			        .withClaim("iat", iat)
-			        .withClaim("exp", exp)
-			        .withClaim("mfa_verfication", "successfully authenticated")
-			        .withClaim("providerUserInfo", providerUserInfo)
-			        .withClaim("mfaInfo", mfaInfo)
+			        .withPayload(payloadClaims)
+			        .withNotBefore(iatDate)
 			        .withExpiresAt(expDate)
 			        .withIssuedAt(iatDate)
+			        .withJWTId(UUID.randomUUID().toString())
 			        .sign(algorithm);
 			    
 			    return new JSONObject().put("idToken", idToken);

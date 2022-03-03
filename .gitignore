@@ -52,5 +52,6 @@ dependency-reduced-pom.xml
 /src/com/zc/credentialsVault
 /WebContent/jquery
 /src/com/zc/tempcode
+/src/com/zc/testingpackage
 #images
 *.png

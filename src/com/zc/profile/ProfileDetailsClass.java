@@ -8,7 +8,9 @@ import javax.naming.NamingException;
 import javax.servlet.ServletException;
 import javax.sql.DataSource;
 
-import org.json.simple.JSONObject;
+import org.json.JSONObject;
+
+import com.zc.loginservlet.UserDetailClass;
 
 public class ProfileDetailsClass {
 	
@@ -25,7 +27,6 @@ public class ProfileDetailsClass {
 		}
 	}
 	
-	@SuppressWarnings("unchecked")
 	public JSONObject UserDetails(String user_id) throws ServletException {
 		init();
 		JSONObject udobj = new JSONObject();
@@ -85,6 +86,32 @@ public class ProfileDetailsClass {
 		}
 		
 		return status;
+	}
+	
+	public JSONObject UserMfaEnrollmentStatus(String email) {
+		try {
+			init();
+			UserDetailClass udc = new UserDetailClass();
+			String userId = udc.GetUserId(email);
+			
+			con = dataSource.getConnection();
+			String mfaEnrollmentStatusQuery = "SELECT mfaEnrolled FROM userdetail WHERE user_id = ?";
+			PreparedStatement ps = con.prepareStatement(mfaEnrollmentStatusQuery);
+			ps.setString(1, userId);
+			ResultSet rs = ps.executeQuery();
+			if(rs.next()) {
+				return new JSONObject().put("mfaEnrollmentStatus", rs.getInt(1));
+			}
+			return new JSONObject().put("error", "User Not Exsist");
+		} catch (ServletException e) {
+			e.printStackTrace();
+			return new JSONObject().put("error", "Internal Server Error");
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return new JSONObject().put("error", "Internal Server Error");
+		}catch (Exception e) {
+			return new JSONObject().put("error", "Internal Server Error");
+		}
 	}
 	
 }

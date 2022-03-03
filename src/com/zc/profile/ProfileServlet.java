@@ -3,7 +3,7 @@ package com.zc.profile;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-import org.json.simple.JSONObject;
+import org.json.JSONObject;
 import com.zc.loginservlet.UserDetailClass;
 
 import javax.servlet.ServletException;

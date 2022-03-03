@@ -188,11 +188,12 @@ public class UserDetailClass {
 			ps.close();
 			con.close();
 		} catch (Exception e) {
-			System.out.println("sendEmailOTP " + e.getMessage());
+			System.out.println("Get User ID: " + e.getMessage());
 		}
 		return user_id;
 	}
 
+	// Method to get username of a user
 	public String GetUserName(String user_id) throws ServletException {
 		init();
 		String username = null;
@@ -211,7 +212,7 @@ public class UserDetailClass {
 			ps.close();
 			con.close();
 		} catch (Exception e) {
-			System.out.println("sendEmailOTP " + e.getMessage());
+			System.out.println("Get User Name " + e.getMessage());
 		}
 		return username;
 	}

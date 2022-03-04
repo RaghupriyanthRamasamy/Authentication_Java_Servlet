@@ -58,10 +58,14 @@ public class VerifyPasswordAPIServlet extends HttpServlet {
 			}
 			JsonWebToken jwt = new JsonWebToken();
 			if ((mfaEnrollmentStatus.get("mfaEnrollmentStatus")).equals(0)) {
-				out.println(jwt.IDToken(useremail, (int)mfaEnrollmentStatus.get("mfaEnrollmentStatus")));
+				out.println(jwt.NonMfaUserIDToken(useremail, (int)mfaEnrollmentStatus.get("mfaEnrollmentStatus")));
 				return;
 			}
-			out.println(new JSONObject().put("error", "Not working"));
+			if ((mfaEnrollmentStatus.get("mfaEnrollmentStatus")).equals(1)) {
+				out.println(jwt.mfaPendingCredToken(useremail, (int)mfaEnrollmentStatus.get("mfaEnrollmentStatus")));
+				return;
+			}
+			out.println(new JSONObject().put("error", "Internal Validation Error"));
 
 //			out.println(jwt.JWTPartialIDToken(useremail));
 		}else {

@@ -280,10 +280,10 @@ public class JsonWebToken {
 			}
 			return new JSONObject().put("error", "Invalid Token");
 		} catch (TokenExpiredException exp) {
-			e.printStackTrace();
+			exp.printStackTrace();
 			return new JSONObject().put("error", "Invalid Token, Token already expired");
 		} catch (JWTVerificationException exception) {
-			e.printStackTrace();
+			exception.printStackTrace();
 			return new JSONObject().put("error", "Invalid Token");
 		} catch (Exception e) {
 			e.printStackTrace();

@@ -32,7 +32,6 @@ public class MFASignInStartAPIServlet extends HttpServlet {
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		response.setContentType("application/json");
 
-		final String idToken = request.getParameter("idToken");
 		final String mfaPendingCredential = request.getParameter("mfaPendingCredential");
 		final String mfaEnrollemntId = request.getParameter("mfaEnrollemntId");
 
@@ -47,24 +46,20 @@ public class MFASignInStartAPIServlet extends HttpServlet {
 			return;
 		}
 
-		if (idToken.length() == 0 || idToken.trim().isEmpty() || "\"\"".equals(idToken)) {
-			out.println(new JSONObject().put("error", "Invalid idToken"));
-			return;
-		}
 		if (mfaPendingCredential.length() == 0 || mfaPendingCredential.trim().isEmpty() || "\"\"".equals(mfaPendingCredential)) {
 			out.println(new JSONObject().put("error", "Invalid mfaPendingCredential"));
 			return;
 		}
 
-		if (!("01".equals(mfaEnrollemntId)) || mfaEnrollemntId.length() == 0 || mfaEnrollemntId.trim().isEmpty() || "\"\"".equals(mfaEnrollemntId)) {
+		if (mfaEnrollemntId.length() == 0 || mfaEnrollemntId.trim().isEmpty() || "\"\"".equals(mfaEnrollemntId)) {
 			out.println(new JSONObject().put("error", "Invalid mfaEnrollemntId"));
 			return;
 		}
 
 		try {
-			final String useremail = (String) StartMfaEmailRequestInfo.get("email");
+			final String otpEmail = (String) StartMfaEmailRequestInfo.get("email");
 
-			if (useremail.length() == 0 || useremail.trim().isEmpty() || "\"\"".equals(useremail)) {
+			if (otpEmail.length() == 0 || otpEmail.trim().isEmpty() || "\"\"".equals(otpEmail)) {
 				out.println(new JSONObject().put("error", "Invalid StartMfaEmailRequestInfo: email required"));
 				return;
 			}
@@ -74,15 +69,20 @@ public class MFASignInStartAPIServlet extends HttpServlet {
 		}
 
 		JsonWebToken jwt = new JsonWebToken();
-		JSONObject decodedIDTokenclaims = jwt.JWTDecoder(idToken);
+		JSONObject mfaPendingCredclaims = jwt.mfaPendingCredTokenDecoder(mfaPendingCredential);
 
-		if (decodedIDTokenclaims.has("error")) {
-			out.println(decodedIDTokenclaims);
+		if (mfaPendingCredclaims.has("error")) {
+			out.println(mfaPendingCredclaims);
+			return;
+		}
+
+		if(!(Integer.parseInt(mfaEnrollemntId) == (int)mfaPendingCredclaims.get("mfaEnrollemntId"))) {
+			out.println(new JSONObject().put("error", "Invalid mfaEnrollemntId"));
 			return;
 		}
 
 		TokenValidationClass uvc = new TokenValidationClass();
-		out.println(uvc.mfaSignInStart(decodedIDTokenclaims, (String) StartMfaEmailRequestInfo.get("email"), mfaPendingCredential));
+		out.println(uvc.mfaSignInStart(mfaPendingCredclaims, (String) StartMfaEmailRequestInfo.get("email")));
 	}
 
 }

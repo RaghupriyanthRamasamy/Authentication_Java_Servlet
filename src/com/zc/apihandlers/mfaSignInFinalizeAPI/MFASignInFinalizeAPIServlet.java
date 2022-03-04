@@ -13,6 +13,8 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.json.JSONObject;
 import org.json.JSONTokener;
+
+import com.zc.JWT.JsonWebToken;
 import com.zc.tokenvalidation.TokenValidationClass;
 
 @WebServlet("/api/v1/accounts/mfaSignIn:finalize")
@@ -31,10 +33,10 @@ public class MFASignInFinalizeAPIServlet extends HttpServlet {
 		PrintWriter out = response.getWriter();
 		JSONObject emailVerificationInfo = new JSONObject();
 		
-		final String email = request.getParameter("email");
+		final String mfaPendingCredential = request.getParameter("mfaPendingCredential");
 		
-		if (email.length() == 0 || email.trim().isEmpty() || "\"\"".equals(email)) {
-			out.println(new JSONObject().put("error", "Invalid email"));
+		if (mfaPendingCredential == null || mfaPendingCredential.length() == 0 || mfaPendingCredential.trim().isEmpty() || "\"\"".equals(mfaPendingCredential)) {
+			out.println(new JSONObject().put("error", "Invalid mfaPendingCredential"));
 			return;
 		}
 		
@@ -64,9 +66,16 @@ public class MFASignInFinalizeAPIServlet extends HttpServlet {
 			return;
 		}
 		
+		JsonWebToken jwt = new JsonWebToken();
+		JSONObject mfaPendingCredclaims = jwt.mfaPendingCredTokenDecoder(mfaPendingCredential);
+
+		if (mfaPendingCredclaims.has("error")) {
+			out.println(mfaPendingCredclaims);
+			return;
+		}
+		
 		TokenValidationClass tvc = new TokenValidationClass();
-		out.println(tvc.otpSessionValidation(email, code, session_info));
+		out.println(tvc.otpSessionValidation(mfaPendingCredclaims, code, session_info));
 		
 	}
-
 }

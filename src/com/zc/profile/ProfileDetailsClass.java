@@ -102,6 +102,8 @@ public class ProfileDetailsClass {
 			if(rs.next()) {
 				return new JSONObject().put("mfaEnrollmentStatus", rs.getInt(1));
 			}
+			ps.close();
+			con.close();
 			return new JSONObject().put("error", "User Not Exsist");
 		} catch (ServletException e) {
 			e.printStackTrace();

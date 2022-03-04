@@ -4,20 +4,21 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.sql.DataSource;
 
-//import com.zc.databaseconnectivity.DatabaseConnectivity;
-import com.zc.hashgenerator.HashGenerator;
-import com.zc.mfacredentials.SessionInfoGenerator;
-
 import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
-import org.json.simple.JSONObject;
+
+import org.json.JSONObject;
+
+import com.zc.hashgenerator.HashGenerator;
+import com.zc.mfacredentials.SessionInfoGenerator;
 
 public class UserDetailClass {
 
@@ -238,7 +239,6 @@ public class UserDetailClass {
 		return true;
 	}
 
-	@SuppressWarnings("unchecked")
 	public JSONObject userOTPValidation(String useremail, String otp, String sessionInfo) throws ServletException {
 
 		init();
@@ -327,6 +327,62 @@ public class UserDetailClass {
 		} catch (Exception e) {
 			e.printStackTrace();
 			return false;
+		}
+	}
+	
+	public JSONObject GetUserMFAEnrollmentID(String email) {
+		try {
+			init();
+			con = dataSource.getConnection();
+			String userMfaEnrollmentQuery = "SELECT mfaId FROM usermultifactor WHERE user_id =?";
+			PreparedStatement ps = con.prepareStatement(userMfaEnrollmentQuery);
+			ps.setString(1, GetUserId(email));
+			ResultSet rs = ps.executeQuery();
+			if (rs.next()) {
+				return new JSONObject().put("userMfaId", rs.getInt(1));
+			}
+			ps.close();
+			con.close();
+			return new JSONObject().put("error", "User not enrolled in multi-factor");
+		} catch (ServletException e) {
+			e.printStackTrace();
+			return new JSONObject().put("error", "Internal Server Error");
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return new JSONObject().put("error", "Internal Server Error");
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new JSONObject().put("error", "Internal Server Error");
+		}
+	}
+	
+	public ArrayList<String> GetUserEmails(String email) {
+		try {
+			init();
+			con = dataSource.getConnection();
+			String getUserEmailsQuery = "select user_email from useremail Where user_id = ?";
+			PreparedStatement ps = con.prepareStatement(getUserEmailsQuery);
+			ps.setString(1, GetUserId(email));
+			ResultSet rs = ps.executeQuery();
+			
+			ArrayList<String> useremails =  new ArrayList<String>();
+			while(rs.next()) {
+				useremails.add(rs.getString(1));
+			}
+			if(useremails.isEmpty()) {
+				System.out.println("Something wrong while fetching user emails in GetUserEmails method lookinto it");
+				return new ArrayList<String>();
+			}
+			ps.close();
+			con.close();
+			return useremails;
+		} catch (ServletException e) {
+			e.printStackTrace();
+			return new ArrayList<String>();
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return new ArrayList<String>();
+//			return new JSONObject().put("error", "Internal Server Error");
 		}
 	}
 	

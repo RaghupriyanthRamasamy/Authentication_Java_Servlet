@@ -12,6 +12,7 @@ import javax.naming.NamingException;
 import javax.servlet.ServletException;
 import javax.sql.DataSource;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import com.zc.sendemailotp.SendEmailOTP;
@@ -22,7 +23,8 @@ public class TokenValidationClass {
 	
 	private DataSource dataSource;
 	private Connection con;
-
+	boolean emailStatus = false;
+	
 	public void init() throws ServletException {
 		try {
 			Context initContext = new InitialContext();
@@ -33,17 +35,24 @@ public class TokenValidationClass {
 		}
 	}
 	
-	public JSONObject mfaSignInStart(JSONObject tokenClaims, String email, String mfaPendingCredential) {
-		System.out.println(tokenClaims);
-		System.out.println(email);
-		System.out.println("Email verified: " + tokenClaims.get("email_verified"));
+	public JSONObject mfaSignInStart(JSONObject tokenClaims, String otpEmail) {
 		try {
-			if (tokenClaims.get("email_verified").equals(true) && tokenClaims.get("email").equals(email)) {
-				if (tokenClaims.get("mfa_verfication").equals("partially verified first factor")) {
-					if (mfaPendingCredential.equals("Successfully passed first factor")) {
+			if (tokenClaims.get("email_verified").equals(true)) {
+				if (tokenClaims.get("mfa_status").equals("mfa enrolled") && tokenClaims.get("auth_status").equals("mfa not verified")) {
+					
+					JSONArray emailOptions = (JSONArray) tokenClaims.get("emailOptions");
+					
+					emailOptions.forEach(email -> {
+						if (email.equals(otpEmail)) {
+							emailStatus = true;
+							return;
+						}
+					});
+					
+					if (emailStatus) {
 						SendEmailOTP sendOTP = new SendEmailOTP();
 						try {
-							JSONObject mfaEmailSessionInfo = sendOTP.sendEmailOTP(email);
+							JSONObject mfaEmailSessionInfo = sendOTP.sendEmailOTP(otpEmail);
 							if (mfaEmailSessionInfo.get("ServerError").equals(false)) {
 								return new JSONObject().put("mfaEmailSessionInfo", new JSONObject().put("mfa_Sessioninfo", mfaEmailSessionInfo.get("otpSessionInfo")));
 							}
@@ -59,27 +68,37 @@ public class TokenValidationClass {
 							return new JSONObject().put("error", "server problem, otp not send");
 						}
 					} else {
-						return new JSONObject().put("error", "First get authenticated in first factor");
+						return new JSONObject().put("error", "email provided is not valid");
 					}
 				} else {
-					return new JSONObject().put("error", "Invalid mfa request");
+					return new JSONObject().put("error", "Invalid mfa request, First get authenticated in first factor");
 				}
 			} else {
 				return new JSONObject().put("error", "Invalid Email ID");
 			}
 		} catch (JSONException e) {
+			e.printStackTrace();
 			return new JSONObject().put("error", "Server problem");
 		}catch(Exception e) {
+			e.printStackTrace();
 			return new JSONObject().put("error", "Server problem");
 		}
 	}
 	
-	public JSONObject otpSessionValidation(String email, String otpCode, String sessionInfo) throws ServletException {
+	public JSONObject otpSessionValidation(JSONObject tokenClaims, String otpCode, String sessionInfo) throws ServletException {
 		try {
 			init();
 			con = dataSource.getConnection();
 			UserDetailClass udc = new UserDetailClass();
-			String user_id = udc.GetUserId(email);
+			String user_id;
+			try {
+				user_id = udc.GetUserId((String)tokenClaims.get("email"));
+				if(user_id.isEmpty())
+					return new JSONObject().put("error", "Invalid Signin Request");
+			} catch (Exception e) {
+				e.printStackTrace();
+				return new JSONObject().put("error", "Internal Server Problem");
+			}
 			String otpValidationQuery = "SELECT * from usermfa WHERE user_id = ? and otp = ? and otp_session_info = ? and auth_info = ?";
 			PreparedStatement ps = con.prepareStatement(otpValidationQuery);
 			ps.setString(1, user_id);
@@ -91,16 +110,16 @@ public class TokenValidationClass {
 				try {
 					String removeOtpSessionQuery = "DELETE FROM usermfa WHERE user_id =? and otp_session_info = ? and otp = ?";
 					ps = con.prepareStatement(removeOtpSessionQuery);
-					ps.setString(1, udc.GetUserId(email));
+					ps.setString(1, user_id);
 					ps.setString(2, sessionInfo);
 					ps.setString(3, otpCode);
 					ps.executeUpdate();
 					ps.close();
 					con.close();
 					JsonWebToken jwt = new JsonWebToken();
-					return jwt.IDToken(email);
+					return jwt.MfaEnrolledUserIDToken((String)tokenClaims.get("email"));
 				} catch (Exception e) {
-					System.out.println("Exception throwed at removeOtpSessionQuery: "+e);
+					e.printStackTrace();
 					return new JSONObject().put("error", "server problem");
 				}
 			}
@@ -108,6 +127,7 @@ public class TokenValidationClass {
 			con.close();
 			return new JSONObject().put("error", "Invalid otp");
 		} catch (Exception e) {
+			e.printStackTrace();
 			return new JSONObject().put("error", "server problem");
 		}
 	}

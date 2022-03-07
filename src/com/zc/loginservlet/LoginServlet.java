@@ -21,7 +21,7 @@ import javax.servlet.http.HttpServletResponse;
 //import net.sf.uadetector.service.UADetectorServiceFactory;
 
 import org.json.simple.JSONObject;
-
+import com.zc.userdetails.UserDetailClass;
 /**
  * Servlet implementation class LoginServlet
  */

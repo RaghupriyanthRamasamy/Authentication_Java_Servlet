@@ -5,7 +5,7 @@ import java.io.PrintWriter;
 
 import javax.mail.MessagingException;
 
-import com.zc.loginservlet.UserDetailClass;
+import com.zc.userdetails.UserDetailClass;
 import com.zc.sendemailotp.SendEmailOTP;
 
 import javax.servlet.ServletException;

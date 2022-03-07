@@ -20,7 +20,7 @@ import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 
 import com.zc.credentialsVault.JWTCredentialsVault;
-import com.zc.loginservlet.UserDetailClass;
+import com.zc.userdetails.UserDetailClass;
 
 public class JsonWebToken {
 

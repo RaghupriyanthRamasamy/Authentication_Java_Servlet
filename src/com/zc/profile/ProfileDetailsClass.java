@@ -10,7 +10,7 @@ import javax.sql.DataSource;
 
 import org.json.JSONObject;
 
-import com.zc.loginservlet.UserDetailClass;
+import com.zc.userdetails.UserDetailClass;
 
 public class ProfileDetailsClass {
 	

@@ -3,7 +3,7 @@ package com.zc.profile;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-import com.zc.loginservlet.UserDetailClass;
+import com.zc.userdetails.UserDetailClass;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;

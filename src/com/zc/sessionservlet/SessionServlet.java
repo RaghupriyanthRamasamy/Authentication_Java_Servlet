@@ -12,7 +12,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.json.simple.JSONObject;
 
-import com.zc.loginservlet.UserDetailClass;
+import com.zc.userdetails.UserDetailClass;
 
 /**
  * Servlet implementation class SessionServlet

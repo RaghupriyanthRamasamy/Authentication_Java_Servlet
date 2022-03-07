@@ -16,7 +16,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import com.zc.sendemailotp.SendEmailOTP;
-import com.zc.loginservlet.UserDetailClass;
+import com.zc.userdetails.UserDetailClass;
 import com.zc.JWT.JsonWebToken;
 
 public class TokenValidationClass {

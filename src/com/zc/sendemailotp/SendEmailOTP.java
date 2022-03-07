@@ -6,7 +6,7 @@ import javax.servlet.ServletException;
 
 import com.zc.credentialsVault.EmailCredentialsVault;
 import com.zc.emailutility.EmailUtility;
-import com.zc.loginservlet.UserDetailClass;
+import com.zc.userdetails.UserDetailClass;
 import com.zc.mfacredentials.OTPCodeGenerator;
 import com.zc.mfacredentials.SessionInfoGenerator;
 

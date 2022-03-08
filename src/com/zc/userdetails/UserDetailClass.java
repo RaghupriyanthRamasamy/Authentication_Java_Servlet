@@ -382,7 +382,64 @@ public class UserDetailClass {
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return new ArrayList<String>();
-//			return new JSONObject().put("error", "Internal Server Error");
+		}
+	}
+	
+	public String GetUserEmail(int email_id) {
+		try {
+			init();
+			con = dataSource.getConnection();
+			String getUserEmailQuery = "select user_email from useremail Where auto_email_id = ?";
+			PreparedStatement ps = con.prepareStatement(getUserEmailQuery);
+			ps.setInt(1, email_id);
+			ResultSet rs = ps.executeQuery();
+			if(rs.next())
+				return rs.getString(1);
+			return "";
+		} catch (ServletException e) {
+			e.printStackTrace();
+			return null;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return null;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
+	public int GetUserEmailID (String email) {
+		try {
+			init();
+			con = dataSource.getConnection();
+			String getUserEmailIDQuery = "select auto_email_id from useremail Where user_email = ?";
+			PreparedStatement ps = con.prepareStatement(getUserEmailIDQuery);
+			ps.setString(1, email);
+			ResultSet rs = ps.executeQuery();
+			if(rs.next())
+				return rs.getInt(1);
+			return 0;
+		} catch (ServletException e) {
+			e.printStackTrace();
+			return 0;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return 0;
+		}
+	}
+	
+	public ArrayList<Integer> GetUserEmailID(ArrayList<String> emails){
+		try {
+			
+			ArrayList<Integer> emailIds = new ArrayList<Integer>();
+			emails.forEach(email -> {
+				emailIds.add(GetUserEmailID(email));
+			});
+			
+			return emailIds;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new ArrayList<Integer>();
 		}
 	}
 	

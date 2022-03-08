@@ -23,7 +23,7 @@ public class TokenValidationClass {
 	
 	private DataSource dataSource;
 	private Connection con;
-	boolean emailStatus = false;
+	boolean emailIdStatus = false;
 	
 	public void init() throws ServletException {
 		try {
@@ -35,21 +35,23 @@ public class TokenValidationClass {
 		}
 	}
 	
-	public JSONObject mfaSignInStart(JSONObject tokenClaims, String otpEmail) {
+	public JSONObject mfaSignInStart(JSONObject tokenClaims, int otpEmailId) {
 		try {
 			if (tokenClaims.get("email_verified").equals(true)) {
 				if (tokenClaims.get("mfa_status").equals("mfa enrolled") && tokenClaims.get("auth_status").equals("mfa not verified")) {
 					
-					JSONArray emailOptions = (JSONArray) tokenClaims.get("emailOptions");
+					JSONArray emailIds = (JSONArray) tokenClaims.get("emailIds");
 					
-					emailOptions.forEach(email -> {
-						if (email.equals(otpEmail)) {
-							emailStatus = true;
+					emailIds.forEach(emailid -> {
+						if ((int)emailid == otpEmailId) {
+							emailIdStatus = true;
 							return;
 						}
 					});
 					
-					if (emailStatus) {
+					if (emailIdStatus) {
+						UserDetailClass udc = new UserDetailClass();
+						String otpEmail= udc.GetUserEmail(otpEmailId);
 						SendEmailOTP sendOTP = new SendEmailOTP();
 						try {
 							JSONObject mfaEmailSessionInfo = sendOTP.sendEmailOTP(otpEmail);
@@ -92,7 +94,7 @@ public class TokenValidationClass {
 			UserDetailClass udc = new UserDetailClass();
 			String user_id;
 			try {
-				user_id = udc.GetUserId((String)tokenClaims.get("email"));
+				user_id = udc.GetUserId(udc.GetUserEmail((int)tokenClaims.get("emailId")));
 				if(user_id.isEmpty())
 					return new JSONObject().put("error", "Invalid Signin Request");
 			} catch (Exception e) {
@@ -117,7 +119,7 @@ public class TokenValidationClass {
 					ps.close();
 					con.close();
 					JsonWebToken jwt = new JsonWebToken();
-					return jwt.MfaEnrolledUserIDToken((String)tokenClaims.get("email"));
+					return jwt.MfaEnrolledUserIDToken(udc.GetUserEmail((int)tokenClaims.get("emailId")));
 				} catch (Exception e) {
 					e.printStackTrace();
 					return new JSONObject().put("error", "server problem");

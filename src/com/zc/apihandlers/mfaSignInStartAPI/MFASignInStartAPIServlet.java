@@ -57,14 +57,15 @@ public class MFASignInStartAPIServlet extends HttpServlet {
 		}
 
 		try {
-			final String otpEmail = (String) StartMfaEmailRequestInfo.get("email");
+			final int otpEmailId = (int) StartMfaEmailRequestInfo.get("emailId");
 
-			if (otpEmail.length() == 0 || otpEmail.trim().isEmpty() || "\"\"".equals(otpEmail)) {
-				out.println(new JSONObject().put("error", "Invalid StartMfaEmailRequestInfo: email required"));
+			if (otpEmailId <= 0) {
+				out.println(new JSONObject().put("error", "Invalid StartMfaEmailRequestInfo: emailid can't be zero"));
 				return;
 			}
 		} catch (Exception e) {
-			out.println(new JSONObject().put("error", "Invalid StartMfaEmailRequestInfo: email required"));
+			e.printStackTrace();
+			out.println(new JSONObject().put("error", "Invalid StartMfaEmailRequestInfo: emailid required to send otp"));
 			return;
 		}
 
@@ -82,7 +83,7 @@ public class MFASignInStartAPIServlet extends HttpServlet {
 		}
 
 		TokenValidationClass uvc = new TokenValidationClass();
-		out.println(uvc.mfaSignInStart(mfaPendingCredclaims, (String) StartMfaEmailRequestInfo.get("email")));
+		out.println(uvc.mfaSignInStart(mfaPendingCredclaims, (int) StartMfaEmailRequestInfo.get("emailId")));
 	}
 
 }

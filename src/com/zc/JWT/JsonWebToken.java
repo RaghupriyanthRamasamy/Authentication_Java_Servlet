@@ -21,6 +21,7 @@ import com.auth0.jwt.interfaces.DecodedJWT;
 
 import com.zc.credentialsVault.JWTCredentialsVault;
 import com.zc.userdetails.UserDetailClass;
+import com.zc.helper.EmailMasking;
 
 public class JsonWebToken {
 
@@ -31,6 +32,10 @@ public class JsonWebToken {
 			JWTCredentialsVault jwtCV = new JWTCredentialsVault();
 			final String secret = jwtCV.getSecret();
 			Algorithm algorithm = Algorithm.HMAC512(secret);
+			
+			EmailMasking emailmasking = new EmailMasking();
+			UserDetailClass udc = new UserDetailClass();
+			
 			long iat = new Date().getTime();
 			long exp = iat + 60 * 60000;
 
@@ -39,7 +44,8 @@ public class JsonWebToken {
 
 			Map<String, Object> payloadClaims = new HashMap<>();
 			payloadClaims.put("email_verified", true);
-			payloadClaims.put("email", useremail);
+			payloadClaims.put("email", emailmasking.MaskEmail(useremail, 3));
+			payloadClaims.put("emailId", udc.GetUserEmailID(useremail));
 
 			if (mfaEnrollmentStatus == 0) {
 				payloadClaims.put("mfa_status", "mfa not enrolled");
@@ -79,6 +85,10 @@ public class JsonWebToken {
 			JWTCredentialsVault jwtCV = new JWTCredentialsVault();
 			final String secret = jwtCV.getSecret();
 			Algorithm algorithm = Algorithm.HMAC512(secret);
+			
+			EmailMasking emailmasking = new EmailMasking();
+			UserDetailClass udc = new UserDetailClass();
+			
 			long iat = new Date().getTime();
 			long exp = iat + 60 * 60000;
 
@@ -87,12 +97,12 @@ public class JsonWebToken {
 
 			Map<String, Object> payloadClaims = new HashMap<>();
 			payloadClaims.put("email_verified", true);
-			payloadClaims.put("email", useremail);
+			payloadClaims.put("email", emailmasking.MaskEmail(useremail, 3));
+			payloadClaims.put("emailId", udc.GetUserEmailID(useremail));
 
 			Map<String, Object> mfaInfo = new HashMap<String, Object>();
 
 			if (mfaEnrollmentStatus == 1) {
-				UserDetailClass udc = new UserDetailClass();
 				JSONObject userMfaId = udc.GetUserMFAEnrollmentID(useremail);
 
 				if (userMfaId.has("error"))
@@ -103,7 +113,8 @@ public class JsonWebToken {
 				if (useremails.isEmpty())
 					return new JSONObject().put("error", "Internal Server problem");
 
-				mfaInfo.put("emailOptions", (List<String>) useremails);
+				mfaInfo.put("emailOptions", (List<String>) emailmasking.MaskEmail(useremails, 3));
+				mfaInfo.put("emailIds", (List<Integer>) udc.GetUserEmailID(useremails));
 				mfaInfo.put("displayName", "email");
 			} else
 				return new JSONObject().put("error", "Invalid request call to perform operation");
@@ -143,6 +154,10 @@ public class JsonWebToken {
 			JWTCredentialsVault jwtCV = new JWTCredentialsVault();
 			final String secret = jwtCV.getSecret();
 			Algorithm algorithm = Algorithm.HMAC512(secret);
+			
+			EmailMasking emailmasking = new EmailMasking();
+			UserDetailClass udc = new UserDetailClass();
+			
 			long iat = new Date().getTime();
 			long exp = iat + 60 * 60000;
 
@@ -151,7 +166,8 @@ public class JsonWebToken {
 
 			Map<String, Object> payloadClaims = new HashMap<>();
 			payloadClaims.put("email_verified", true);
-			payloadClaims.put("email", useremail);
+			payloadClaims.put("email", emailmasking.MaskEmail(useremail, 3));
+			payloadClaims.put("emailId", udc.GetUserEmailID(useremail));
 
 			payloadClaims.put("mfa_status", "mfa enrolled");
 			payloadClaims.put("mfa_verified", "mfa verified successfully");
@@ -159,7 +175,6 @@ public class JsonWebToken {
 			
 			Map<String, Object> mfaInfo = new HashMap<String, Object>();
 
-			UserDetailClass udc = new UserDetailClass();
 			JSONObject userMfaId = udc.GetUserMFAEnrollmentID(useremail);
 
 			if (userMfaId.has("error"))
@@ -171,7 +186,8 @@ public class JsonWebToken {
 			if (useremails.isEmpty())
 				return new JSONObject().put("error", "Internal Server problem");
 
-			mfaInfo.put("emailOptions", (List<String>) useremails);
+			mfaInfo.put("emailOptions", (List<String>) emailmasking.MaskEmail(useremails, 3));
+			mfaInfo.put("emailIds", (List<Integer>) udc.GetUserEmailID(useremails));
 			mfaInfo.put("displayName", "email");
 			
 			payloadClaims.put("mfaInfo", mfaInfo);
@@ -208,9 +224,10 @@ public class JsonWebToken {
 				claims.put("auth_status", verifiedJWT.getClaim("auth_status").asString());
 				claims.put("email", verifiedJWT.getClaim("email").asString());
 				claims.put("email_verified", verifiedJWT.getClaim("email_verified").asBoolean());
+				claims.put("emailId", verifiedJWT.getClaim("emailId").asInt());
 				JSONObject mfaInfo = new JSONObject(verifiedJWT.getClaim("mfaInfo").toString());
 				claims.put("mfaEnrollemntId", mfaInfo.get("mfaEnrollemntId"));
-				claims.put("emailOptions", new JSONArray((JSONArray) mfaInfo.get("emailOptions")));
+				claims.put("emailIds", new JSONArray((JSONArray) mfaInfo.get("emailIds")));
 				return claims;
 			}
 			return new JSONObject().put("error", "Invalid Token");

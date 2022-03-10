@@ -87,14 +87,15 @@ public class TokenValidationClass {
 		}
 	}
 	
-	public JSONObject otpSessionValidation(JSONObject tokenClaims, String otpCode, String sessionInfo) throws ServletException {
+	public JSONObject otpSessionValidation(JSONObject tokenClaims, String otpCode, String sessionInfo) {
 		try {
 			init();
 			con = dataSource.getConnection();
 			UserDetailClass udc = new UserDetailClass();
-			String user_id;
+			String user_id, userEmail;
 			try {
-				user_id = udc.GetUserId(udc.GetUserEmail((int)tokenClaims.get("emailId")));
+				userEmail = udc.GetUserEmail((int)tokenClaims.get("emailId"));
+				user_id = udc.GetUserId(userEmail);
 				if(user_id.isEmpty())
 					return new JSONObject().put("error", "Invalid Signin Request");
 			} catch (Exception e) {
@@ -119,7 +120,7 @@ public class TokenValidationClass {
 					ps.close();
 					con.close();
 					JsonWebToken jwt = new JsonWebToken();
-					return jwt.MfaEnrolledUserIDToken(udc.GetUserEmail((int)tokenClaims.get("emailId")));
+					return jwt.MfaEnrolledUserIDToken(userEmail);
 				} catch (Exception e) {
 					e.printStackTrace();
 					return new JSONObject().put("error", "server problem");

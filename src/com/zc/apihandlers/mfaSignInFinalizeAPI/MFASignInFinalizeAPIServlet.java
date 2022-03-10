@@ -14,8 +14,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
-import com.zc.JWT.JsonWebToken;
-import com.zc.tokenvalidation.TokenValidationClass;
+import com.zc.apihandlers.mfaSignInFinalizeAPI.MFASignInFinalizeAPIHandler;
 
 @WebServlet("/api/v1/accounts/mfaSignIn:finalize")
 public class MFASignInFinalizeAPIServlet extends HttpServlet {
@@ -35,11 +34,6 @@ public class MFASignInFinalizeAPIServlet extends HttpServlet {
 		
 		final String mfaPendingCredential = request.getParameter("mfaPendingCredential");
 		
-		if (mfaPendingCredential == null || mfaPendingCredential.length() == 0 || mfaPendingCredential.trim().isEmpty() || "\"\"".equals(mfaPendingCredential)) {
-			out.println(new JSONObject().put("error", "Invalid mfaPendingCredential"));
-			return;
-		}
-		
 		try {
 			JSONTokener tokener = new JSONTokener(new BufferedReader(new InputStreamReader(request.getInputStream())));
 			emailVerificationInfo = (JSONObject) new JSONObject(tokener).get("emailVerificationInfo");
@@ -48,34 +42,7 @@ public class MFASignInFinalizeAPIServlet extends HttpServlet {
 			return;
 		}
 		
-		String session_info, code;
-		
-		try {
-			session_info = emailVerificationInfo.getString("sessionInfo");
-			code = emailVerificationInfo.getString("code");
-		} catch (Exception e) {
-			out.println(new JSONObject().put("error", "Invalid sessionInfo or Code credentials"));
-			return;
-		}
-		if (session_info.length() == 0 || session_info.trim().isEmpty() || "\"\"".equals(session_info)) {
-			out.println(new JSONObject().put("error", "Invalid sessionInfo"));
-			return;
-		}
-		if (code.length() == 0 || code.trim().isEmpty() || "\"\"".equals(code) || code.length() != 6) {
-			out.println(new JSONObject().put("error", "Invalid otp code"));
-			return;
-		}
-		
-		JsonWebToken jwt = new JsonWebToken();
-		JSONObject mfaPendingCredclaims = jwt.mfaPendingCredTokenDecoder(mfaPendingCredential);
-
-		if (mfaPendingCredclaims.has("error")) {
-			out.println(mfaPendingCredclaims);
-			return;
-		}
-		
-		TokenValidationClass tvc = new TokenValidationClass();
-		out.println(tvc.otpSessionValidation(mfaPendingCredclaims, code, session_info));
-		
+		MFASignInFinalizeAPIHandler mfaSignInFinalizeObj = new MFASignInFinalizeAPIHandler();
+		out.println(mfaSignInFinalizeObj.MFASignInFinalizeAPI(mfaPendingCredential, emailVerificationInfo));		
 	}
 }

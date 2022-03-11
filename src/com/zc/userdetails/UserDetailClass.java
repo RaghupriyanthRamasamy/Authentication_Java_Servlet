@@ -339,7 +339,10 @@ public class UserDetailClass {
 			ps.setString(1, GetUserId(email));
 			ResultSet rs = ps.executeQuery();
 			if (rs.next()) {
-				return new JSONObject().put("userMfaId", rs.getInt(1));
+				JSONObject userMfaId = new JSONObject().put("userMfaId", rs.getInt(1));
+				ps.close();
+				con.close();
+				return userMfaId;
 			}
 			ps.close();
 			con.close();
@@ -396,10 +399,19 @@ public class UserDetailClass {
 			PreparedStatement ps = con.prepareStatement(getUserEmailQuery);
 			ps.setInt(1, email_id);
 			ResultSet rs = ps.executeQuery();
+<<<<<<< HEAD
 			if(rs.next())
 				userEmail = rs.getString(1);
 			ps.close();
 			con.close();
+=======
+			if(rs.next()) {
+				userEmail = rs.getString(1);
+				ps.close();
+				con.close();
+				return userEmail;
+			}
+>>>>>>> ApiHandlingRefactor
 			return userEmail;
 		} catch (ServletException e) {
 			e.printStackTrace();
@@ -417,16 +429,32 @@ public class UserDetailClass {
 		try {
 			init();
 			con = dataSource.getConnection();
+<<<<<<< HEAD
 			int UserEmailId = 0;
+=======
+			int userEmailId = 0;
+>>>>>>> ApiHandlingRefactor
 			String getUserEmailIDQuery = "select auto_email_id from useremail Where user_email = ?";
 			PreparedStatement ps = con.prepareStatement(getUserEmailIDQuery);
 			ps.setString(1, email);
 			ResultSet rs = ps.executeQuery();
+<<<<<<< HEAD
 			if(rs.next())
 				UserEmailId = rs.getInt(1);
 			ps.close();
 			con.close();
 			return UserEmailId;
+=======
+			if(rs.next()) {
+				userEmailId = rs.getInt(1);
+				ps.close();
+				con.close();
+				return userEmailId;
+			}
+			ps.close();
+			con.close();
+			return userEmailId;
+>>>>>>> ApiHandlingRefactor
 		} catch (ServletException e) {
 			e.printStackTrace();
 			return 0;
@@ -448,6 +476,36 @@ public class UserDetailClass {
 		} catch (Exception e) {
 			e.printStackTrace();
 			return new ArrayList<Integer>();
+		}
+	}
+	
+	public JSONObject UserMfaEnrollmentStatus(String email) {
+		try {
+			init();
+			String userId = GetUserId(email);
+			
+			con = dataSource.getConnection();
+			String mfaEnrollmentStatusQuery = "SELECT mfaEnrolled FROM userdetail WHERE user_id = ?";
+			PreparedStatement ps = con.prepareStatement(mfaEnrollmentStatusQuery);
+			ps.setString(1, userId);
+			ResultSet rs = ps.executeQuery();
+			if(rs.next()) {
+				JSONObject mfaEnrollmentStatus = new JSONObject().put("mfaEnrollmentStatus", rs.getInt(1));
+				ps.close();
+				con.close();
+				return mfaEnrollmentStatus;
+			}
+			ps.close();
+			con.close();
+			return new JSONObject().put("error", "User Not Exsist");
+		} catch (ServletException e) {
+			e.printStackTrace();
+			return new JSONObject().put("error", "Internal Server Error");
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return new JSONObject().put("error", "Internal Server Error");
+		}catch (Exception e) {
+			return new JSONObject().put("error", "Internal Server Error");
 		}
 	}
 	

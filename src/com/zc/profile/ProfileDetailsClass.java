@@ -10,8 +10,6 @@ import javax.sql.DataSource;
 
 import org.json.JSONObject;
 
-import com.zc.userdetails.UserDetailClass;
-
 public class ProfileDetailsClass {
 	
 	private DataSource dataSource;
@@ -87,6 +85,7 @@ public class ProfileDetailsClass {
 		
 		return status;
 	}
+<<<<<<< HEAD
 	
 	public JSONObject UserMfaEnrollmentStatus(String email) {
 		try {
@@ -119,4 +118,6 @@ public class ProfileDetailsClass {
 		}
 	}
 	
+=======
+>>>>>>> ApiHandlingRefactor
 }

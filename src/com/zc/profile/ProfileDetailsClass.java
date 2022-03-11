@@ -85,39 +85,4 @@ public class ProfileDetailsClass {
 		
 		return status;
 	}
-<<<<<<< HEAD
-	
-	public JSONObject UserMfaEnrollmentStatus(String email) {
-		try {
-			init();
-			UserDetailClass udc = new UserDetailClass();
-			String userId = udc.GetUserId(email);
-			
-			con = dataSource.getConnection();
-			String mfaEnrollmentStatusQuery = "SELECT mfaEnrolled FROM userdetail WHERE user_id = ?";
-			PreparedStatement ps = con.prepareStatement(mfaEnrollmentStatusQuery);
-			ps.setString(1, userId);
-			ResultSet rs = ps.executeQuery();
-			if(rs.next()) {
-				JSONObject mfaEnrollmentStatus = new JSONObject().put("mfaEnrollmentStatus", rs.getInt(1));
-				ps.close();
-				con.close();
-				return mfaEnrollmentStatus;
-			}
-			ps.close();
-			con.close();
-			return new JSONObject().put("error", "User Not Exsist");
-		} catch (ServletException e) {
-			e.printStackTrace();
-			return new JSONObject().put("error", "Internal Server Error");
-		} catch (SQLException e) {
-			e.printStackTrace();
-			return new JSONObject().put("error", "Internal Server Error");
-		}catch (Exception e) {
-			return new JSONObject().put("error", "Internal Server Error");
-		}
-	}
-	
-=======
->>>>>>> ApiHandlingRefactor
 }

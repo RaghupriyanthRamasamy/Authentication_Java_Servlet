@@ -399,19 +399,12 @@ public class UserDetailClass {
 			PreparedStatement ps = con.prepareStatement(getUserEmailQuery);
 			ps.setInt(1, email_id);
 			ResultSet rs = ps.executeQuery();
-<<<<<<< HEAD
-			if(rs.next())
-				userEmail = rs.getString(1);
-			ps.close();
-			con.close();
-=======
 			if(rs.next()) {
 				userEmail = rs.getString(1);
 				ps.close();
 				con.close();
 				return userEmail;
 			}
->>>>>>> ApiHandlingRefactor
 			return userEmail;
 		} catch (ServletException e) {
 			e.printStackTrace();
@@ -429,22 +422,11 @@ public class UserDetailClass {
 		try {
 			init();
 			con = dataSource.getConnection();
-<<<<<<< HEAD
-			int UserEmailId = 0;
-=======
 			int userEmailId = 0;
->>>>>>> ApiHandlingRefactor
 			String getUserEmailIDQuery = "select auto_email_id from useremail Where user_email = ?";
 			PreparedStatement ps = con.prepareStatement(getUserEmailIDQuery);
 			ps.setString(1, email);
 			ResultSet rs = ps.executeQuery();
-<<<<<<< HEAD
-			if(rs.next())
-				UserEmailId = rs.getInt(1);
-			ps.close();
-			con.close();
-			return UserEmailId;
-=======
 			if(rs.next()) {
 				userEmailId = rs.getInt(1);
 				ps.close();
@@ -454,7 +436,6 @@ public class UserDetailClass {
 			ps.close();
 			con.close();
 			return userEmailId;
->>>>>>> ApiHandlingRefactor
 		} catch (ServletException e) {
 			e.printStackTrace();
 			return 0;

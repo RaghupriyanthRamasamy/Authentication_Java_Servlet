@@ -339,7 +339,10 @@ public class UserDetailClass {
 			ps.setString(1, GetUserId(email));
 			ResultSet rs = ps.executeQuery();
 			if (rs.next()) {
-				return new JSONObject().put("userMfaId", rs.getInt(1));
+				JSONObject userMfaId = new JSONObject().put("userMfaId", rs.getInt(1));
+				ps.close();
+				con.close();
+				return userMfaId;
 			}
 			ps.close();
 			con.close();
@@ -389,13 +392,18 @@ public class UserDetailClass {
 		try {
 			init();
 			con = dataSource.getConnection();
+			String userEmail = "";
 			String getUserEmailQuery = "select user_email from useremail Where auto_email_id = ?";
 			PreparedStatement ps = con.prepareStatement(getUserEmailQuery);
 			ps.setInt(1, email_id);
 			ResultSet rs = ps.executeQuery();
-			if(rs.next())
-				return rs.getString(1);
-			return "";
+			if(rs.next()) {
+				userEmail = rs.getString(1);
+				ps.close();
+				con.close();
+				return userEmail;
+			}
+			return userEmail;
 		} catch (ServletException e) {
 			e.printStackTrace();
 			return null;
@@ -412,13 +420,20 @@ public class UserDetailClass {
 		try {
 			init();
 			con = dataSource.getConnection();
+			int userEmailId = 0;
 			String getUserEmailIDQuery = "select auto_email_id from useremail Where user_email = ?";
 			PreparedStatement ps = con.prepareStatement(getUserEmailIDQuery);
 			ps.setString(1, email);
 			ResultSet rs = ps.executeQuery();
-			if(rs.next())
-				return rs.getInt(1);
-			return 0;
+			if(rs.next()) {
+				userEmailId = rs.getInt(1);
+				ps.close();
+				con.close();
+				return userEmailId;
+			}
+			ps.close();
+			con.close();
+			return userEmailId;
 		} catch (ServletException e) {
 			e.printStackTrace();
 			return 0;
@@ -454,7 +469,10 @@ public class UserDetailClass {
 			ps.setString(1, userId);
 			ResultSet rs = ps.executeQuery();
 			if(rs.next()) {
-				return new JSONObject().put("mfaEnrollmentStatus", rs.getInt(1));
+				JSONObject mfaEnrollmentStatus = new JSONObject().put("mfaEnrollmentStatus", rs.getInt(1));
+				ps.close();
+				con.close();
+				return mfaEnrollmentStatus;
 			}
 			ps.close();
 			con.close();

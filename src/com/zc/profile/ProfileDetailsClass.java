@@ -100,7 +100,10 @@ public class ProfileDetailsClass {
 			ps.setString(1, userId);
 			ResultSet rs = ps.executeQuery();
 			if(rs.next()) {
-				return new JSONObject().put("mfaEnrollmentStatus", rs.getInt(1));
+				JSONObject mfaEnrollmentStatus = new JSONObject().put("mfaEnrollmentStatus", rs.getInt(1));
+				ps.close();
+				con.close();
+				return mfaEnrollmentStatus;
 			}
 			ps.close();
 			con.close();

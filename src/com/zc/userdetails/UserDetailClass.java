@@ -370,7 +370,9 @@ public class UserDetailClass {
 				useremails.add(rs.getString(1));
 			}
 			if(useremails.isEmpty()) {
-				System.out.println("Something wrong while fetching user emails in GetUserEmails method lookinto it");
+				System.out.println("Something wrong while fetching user emails in GetUserEmails method look into it");
+				ps.close();
+				con.close();
 				return new ArrayList<String>();
 			}
 			ps.close();
@@ -384,18 +386,21 @@ public class UserDetailClass {
 			return new ArrayList<String>();
 		}
 	}
-	
+
 	public String GetUserEmail(int email_id) {
 		try {
 			init();
 			con = dataSource.getConnection();
+			String userEmail = "";
 			String getUserEmailQuery = "select user_email from useremail Where auto_email_id = ?";
 			PreparedStatement ps = con.prepareStatement(getUserEmailQuery);
 			ps.setInt(1, email_id);
 			ResultSet rs = ps.executeQuery();
 			if(rs.next())
-				return rs.getString(1);
-			return "";
+				userEmail = rs.getString(1);
+			ps.close();
+			con.close();
+			return userEmail;
 		} catch (ServletException e) {
 			e.printStackTrace();
 			return null;
@@ -412,13 +417,16 @@ public class UserDetailClass {
 		try {
 			init();
 			con = dataSource.getConnection();
+			int UserEmailId = 0;
 			String getUserEmailIDQuery = "select auto_email_id from useremail Where user_email = ?";
 			PreparedStatement ps = con.prepareStatement(getUserEmailIDQuery);
 			ps.setString(1, email);
 			ResultSet rs = ps.executeQuery();
 			if(rs.next())
-				return rs.getInt(1);
-			return 0;
+				UserEmailId = rs.getInt(1);
+			ps.close();
+			con.close();
+			return UserEmailId;
 		} catch (ServletException e) {
 			e.printStackTrace();
 			return 0;

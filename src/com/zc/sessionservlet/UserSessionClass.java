@@ -8,7 +8,7 @@ import javax.naming.NamingException;
 import javax.servlet.ServletException;
 import javax.sql.DataSource;
 
-import org.json.simple.JSONObject;
+import org.json.JSONObject;
 
 public class UserSessionClass {
 	
@@ -26,7 +26,6 @@ public class UserSessionClass {
 	}
 	
 	// Fetching user active sessions from database
-	@SuppressWarnings("unchecked")
 	public JSONObject UserActiveSessions(String user_id) throws ServletException {
 		init();
 		JSONObject obj = new JSONObject();

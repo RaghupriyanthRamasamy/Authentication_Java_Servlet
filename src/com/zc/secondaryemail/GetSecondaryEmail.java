@@ -3,7 +3,7 @@ package com.zc.secondaryemail;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-import org.json.simple.JSONObject;
+import org.json.JSONObject;
 
 import com.zc.userdetails.UserDetailClass;
 

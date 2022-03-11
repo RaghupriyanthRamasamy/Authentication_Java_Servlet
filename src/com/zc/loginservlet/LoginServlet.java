@@ -20,7 +20,7 @@ import javax.servlet.http.HttpServletResponse;
 //import net.sf.uadetector.*;
 //import net.sf.uadetector.service.UADetectorServiceFactory;
 
-import org.json.simple.JSONObject;
+import org.json.JSONObject;
 import com.zc.userdetails.UserDetailClass;
 /**
  * Servlet implementation class LoginServlet
@@ -36,7 +36,6 @@ public class LoginServlet extends HttpServlet {
 			throws ServletException, IOException {
 	}
 
-	@SuppressWarnings("unchecked")
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 

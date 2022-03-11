@@ -12,7 +12,7 @@ import javax.naming.NamingException;
 import javax.servlet.ServletException;
 import javax.sql.DataSource;
 
-import org.json.simple.JSONObject;
+import org.json.JSONObject;
 
 import com.zc.hashgenerator.HashGenerator;
 

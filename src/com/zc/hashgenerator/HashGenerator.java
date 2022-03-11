@@ -4,14 +4,13 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 
-import org.json.simple.JSONObject;
+import org.json.JSONObject;
 
 public class HashGenerator {
 
 	String algorithm = "SHA-256";
 	
 	// To create hash password by creating different salt value
-	@SuppressWarnings("unchecked")
 	public JSONObject generateHash(String data) throws NoSuchAlgorithmException {
 		JSONObject jobj = new JSONObject();
 		MessageDigest digest = MessageDigest.getInstance("SHA-256");

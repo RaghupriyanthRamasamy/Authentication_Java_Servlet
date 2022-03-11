@@ -11,7 +11,7 @@ import javax.naming.NamingException;
 import javax.servlet.ServletException;
 import javax.sql.DataSource;
 
-import org.json.simple.JSONObject;
+import org.json.JSONObject;
 
 public class SecondayEmailClass {
 
@@ -54,7 +54,6 @@ public class SecondayEmailClass {
 	}
 	
 	// Fetch user secondary email from database
-	@SuppressWarnings("unchecked")
 	public JSONObject GetSecEmail(String user_id) throws ServletException {
 		init();
 		JSONObject obj = new JSONObject();

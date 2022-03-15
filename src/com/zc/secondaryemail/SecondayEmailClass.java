@@ -16,9 +16,8 @@ import org.json.JSONObject;
 public class SecondayEmailClass {
 
 	private DataSource dataSource;
-	private Connection con;
 	
-	public void init() throws ServletException {
+	public SecondayEmailClass() {
 		try {
 			Context initContext  = new InitialContext();
 			Context envContext  = (Context)initContext.lookup("java:/comp/env");
@@ -30,52 +29,37 @@ public class SecondayEmailClass {
 	
 	// Add secondary email to user
 	public boolean AddSecondaryEmail(String user_id, String sec_email) throws ServletException {
-		boolean status = true;
-		init();
-		PreparedStatement ps;
-		try {
-			
-			con = dataSource.getConnection();
-			String addSecQuery = "insert into useremail (user_id, user_email, email_status) value(?,?,?);";
-			ps = con.prepareStatement(addSecQuery);
+		try (
+			Connection con = dataSource.getConnection();
+			PreparedStatement ps = con.prepareStatement("insert into useremail (user_id, user_email, email_status) value(?,?,?);");
+		) {
 			ps.setString(1, user_id);
 			ps.setString(2, sec_email);
 			ps.setInt(3, 1);
 			ps.executeUpdate();
-			
-			ps.close();
-			con.close();
+			return true;
 		} catch (SQLException e) {
-			status = false;
 			e.printStackTrace();
+			return false;
 		}
-		
-		return status;
 	}
 	
 	// Fetch user secondary email from database
 	public JSONObject GetSecEmail(String user_id) throws ServletException {
-		init();
 		JSONObject obj = new JSONObject();
 		
-		try {
-
-			con = dataSource.getConnection();
-			String getSecEmailQuery = "select user_email from usercredentials.useremail Where user_id = ? AND email_status = ? ;";
-			
-			PreparedStatement ps = con.prepareStatement(getSecEmailQuery);
+		try (
+			Connection con = dataSource.getConnection();
+			PreparedStatement ps = con.prepareStatement("select user_email from usercredentials.useremail Where user_id = ? AND email_status = ? ;");
+		) {
 			ps.setString(1, user_id);
 			ps.setInt(2, 1);
 			ResultSet rs = ps.executeQuery();
-			while(rs.next()) {
-				String temp = "secemail";
-				obj.put(rs.getString(1), temp);
-			}
+			while(rs.next())
+				obj.put(rs.getString(1), "secemail");
 			
-			ps.close();
-			con.close();
 		} catch (SQLException e) {
-			
+			obj.put("error", "Internal error");
 			e.printStackTrace();
 		}
 		
@@ -84,66 +68,61 @@ public class SecondayEmailClass {
 	
 	// Remove secondary email
 	public boolean RemoveSecondaryEmail(String secEmail) throws ServletException {
-		init();
-		boolean status = true;
-		
-		try {
-
-			con = dataSource.getConnection();
-			String removeSecEmailQuery = "DELETE FROM useremail WHERE user_email = ?";
-			PreparedStatement ps = con.prepareStatement(removeSecEmailQuery);
+		try (
+			Connection con = dataSource.getConnection();
+			PreparedStatement ps = con.prepareStatement("DELETE FROM useremail WHERE user_email = ?");
+		) {
 			ps.setString(1, secEmail);
-			ps.execute();
-			ps.close();
-			con.close();
+			ps.executeUpdate();
+			return true;
 		} catch (SQLException e) {
-			status = false;
 			e.printStackTrace();
+			return false;
 		}
-		
-		return status;
 	}
 	
 	// Change secondary email to primary email
 	public boolean SecondaryToPrimary(String user_id, String primaryEmail, String secondaryEmail) throws ServletException {
-		
-		System.out.println("Primary Email: " + primaryEmail);
-		System.out.println("Secondary Email: " + secondaryEmail);
-		
-		boolean status = true;
-		init();
-		try {
-
-			con = dataSource.getConnection();
-			
-			String dropEmailsQuery = "DELETE FROM useremail WHERE user_email = ?";
-			PreparedStatement ps = con.prepareStatement(dropEmailsQuery);
-			ps.setString(1, primaryEmail);
+		try (
+			Connection con = dataSource.getConnection();
+			PreparedStatement ps = con.prepareStatement("UPDATE useremail SET email_Status = ? WHERE user_id = ? AND user_email = ?;");
+		) {
+			ps.setInt(1, 0);
+			ps.setString(2, user_id);
+			ps.setString(3, secondaryEmail);
 			ps.executeUpdate();
 			
-			ps.setString(1, secondaryEmail);
+			ps.setInt(1, 1);
+			ps.setString(2, user_id);
+			ps.setString(3, primaryEmail);
 			ps.executeUpdate();
-			
-			String changeEmailQuery = "INSERT into usercredentials.useremail (user_id, user_email, email_status) value(?,?,?);";
-			ps = con.prepareStatement(changeEmailQuery);
-			ps.setString(1, user_id);
-			ps.setString(2, secondaryEmail);
-			ps.setInt(3, 0);
-			ps.executeUpdate();
-			
-			ps.setString(1, user_id);
-			ps.setString(2, primaryEmail);
-			ps.setInt(3, 1);
-			ps.executeUpdate();
-			
-			ps.close();
-			con.close();
+			return true;
 		} catch (SQLException e) {
-			status = false;
 			e.printStackTrace();
+			return false;
 		}
-		
-		return status;
 	}
-	
 }
+
+//try (
+//		Connection con = dataSource.getConnection();
+//		PreparedStatement ps = con.prepareStatement("DELETE FROM useremail WHERE user_email = ?");
+//	) {
+//		ps.setString(1, primaryEmail);
+//		ps.executeUpdate();
+//		
+//		ps.setString(1, secondaryEmail);
+//		ps.executeUpdate();
+//		
+//		try (PreparedStatement ps2 = con.prepareStatement("INSERT into usercredentials.useremail (user_id, user_email, email_status) value(?,?,?);");){
+//			ps2.setString(1, user_id);
+//			ps2.setString(2, secondaryEmail);
+//			ps2.setInt(3, 0);
+//			ps2.executeUpdate();
+//			
+//			ps2.setString(1, user_id);
+//			ps2.setString(2, primaryEmail);
+//			ps2.setInt(3, 1);
+//			ps2.executeUpdate();
+////			return true;
+//		}

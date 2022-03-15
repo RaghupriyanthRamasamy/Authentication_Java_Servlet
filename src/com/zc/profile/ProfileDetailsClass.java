@@ -13,9 +13,8 @@ import org.json.JSONObject;
 public class ProfileDetailsClass {
 	
 	private DataSource dataSource;
-	private Connection con;
 	
-	public void init() throws ServletException {
+	public ProfileDetailsClass() {
 		try {
 			Context initContext  = new InitialContext();
 			Context envContext  = (Context)initContext.lookup("java:/comp/env");
@@ -26,63 +25,55 @@ public class ProfileDetailsClass {
 	}
 	
 	public JSONObject UserDetails(String user_id) throws ServletException {
-		init();
 		JSONObject udobj = new JSONObject();
 		
-		try {
-			
-			con = dataSource.getConnection();
-			
-			String profileSelectQuery = "select * from userdetail where user_id = ?";
-			PreparedStatement ps = con.prepareStatement(profileSelectQuery);
+		try (
+			Connection con = dataSource.getConnection();
+			PreparedStatement ps = con.prepareStatement("select * from userdetail where user_id = ?");
+		) {
 			ps.setString(1, user_id);
-			ResultSet rs = ps.executeQuery();
-			if(rs.next()) {
-				udobj.put("firstname", rs.getString(2));
-				udobj.put("lastname", rs.getString(3));
-				udobj.put("gender", rs.getString(6));
-				udobj.put("country", rs.getString(7));
+			try (ResultSet rs = ps.executeQuery();){
+				if(rs.next()) {
+					udobj.put("firstname", rs.getString(2));
+					udobj.put("lastname", rs.getString(3));
+					udobj.put("gender", rs.getString(6));
+					udobj.put("country", rs.getString(7));
+				}
 			}
 			
-			String emailGetQuery = "SELECT user_email from useremail where user_id = ? AND email_status = ?";
-			ps = con.prepareStatement(emailGetQuery);
-			ps.setString(1, user_id);
-			ps.setInt(2, 0);
-			rs = ps.executeQuery();
-			if(rs.next()) {
-				udobj.put("email", rs.getString(1));
+			try (
+				PreparedStatement ps2 = con.prepareStatement("SELECT user_email from useremail where user_id = ? AND email_status = ?")
+			){
+				ps2.setString(1, user_id);
+				ps2.setInt(2, 0);
+				try (ResultSet rs2 = ps2.executeQuery();){
+					if(rs2.next()) {
+						udobj.put("email", rs2.getString(1));
+					}
+				}
 			}
-			
-			ps.close();
-			con.close();
 		} catch (Exception e) {
-			System.out.println("In userdetails "+ e.getMessage());
+			e.printStackTrace();
+			return new JSONObject().put("error", "Server error");
 		}
 		return udobj;
 	}
 	
 	public boolean UpdateProfile(String firstname, String lastname, String gender, String country, String user_id) throws ServletException {
-		init();
-		boolean status = true;
-		try {
-
-			con = dataSource.getConnection();
-			String profileUpdateQuery = "update userdetail set first_name = ?,last_name = ?,gender = ?,country = ? where user_id =?";
-			
-			PreparedStatement ps = con.prepareStatement(profileUpdateQuery);
+		try (
+			Connection con = dataSource.getConnection();
+			PreparedStatement ps = con.prepareStatement("update userdetail set first_name = ?,last_name = ?,gender = ?,country = ? where user_id =?");
+			) {
 			ps.setString(1, firstname);
 			ps.setString(2, lastname);
 			ps.setString(3, gender);
 			ps.setString(4, country);
 			ps.setString(5, user_id);
 			ps.executeUpdate();
-			ps.close();
-			con.close();
+			return true;
 		} catch (Exception e) {
-			status = false;
-			System.out.println("In update profile method: "+ e.getMessage());
+			e.printStackTrace();
+			return false;
 		}
-		
-		return status;
 	}
 }

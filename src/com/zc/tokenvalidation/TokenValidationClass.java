@@ -22,10 +22,9 @@ import com.zc.JWT.JsonWebToken;
 public class TokenValidationClass {
 	
 	private DataSource dataSource;
-	private Connection con;
 	boolean emailIdStatus = false;
 	
-	public void init() throws ServletException {
+	public TokenValidationClass() {
 		try {
 			Context initContext = new InitialContext();
 			Context envContext = (Context) initContext.lookup("java:/comp/env");
@@ -88,9 +87,10 @@ public class TokenValidationClass {
 	}
 	
 	public JSONObject otpSessionValidation(JSONObject tokenClaims, String otpCode, String sessionInfo) {
-		try {
-			init();
-			con = dataSource.getConnection();
+		try (
+			Connection con = dataSource.getConnection();
+			PreparedStatement ps = con.prepareStatement("SELECT * from usermfa WHERE user_id = ? and otp = ? and otp_session_info = ? and auth_info = ?");
+		) {
 			UserDetailClass udc = new UserDetailClass();
 			String user_id, userEmail;
 			try {
@@ -102,33 +102,26 @@ public class TokenValidationClass {
 				e.printStackTrace();
 				return new JSONObject().put("error", "Internal Server Problem");
 			}
-			String otpValidationQuery = "SELECT * from usermfa WHERE user_id = ? and otp = ? and otp_session_info = ? and auth_info = ?";
-			PreparedStatement ps = con.prepareStatement(otpValidationQuery);
 			ps.setString(1, user_id);
 			ps.setString(2, otpCode);
 			ps.setString(3, sessionInfo);
 			ps.setString(4, "notSignin");
-			ResultSet rs = ps.executeQuery();
-			if(rs.next()) {
-				try {
-					String removeOtpSessionQuery = "DELETE FROM usermfa WHERE user_id =? and otp_session_info = ? and otp = ?";
-					ps = con.prepareStatement(removeOtpSessionQuery);
-					ps.setString(1, user_id);
-					ps.setString(2, sessionInfo);
-					ps.setString(3, otpCode);
-					ps.executeUpdate();
-					ps.close();
-					con.close();
-					JsonWebToken jwt = new JsonWebToken();
-					return jwt.MfaEnrolledUserIDToken(userEmail);
-				} catch (Exception e) {
-					e.printStackTrace();
-					return new JSONObject().put("error", "server problem");
+			try (ResultSet rs = ps.executeQuery()) {
+				if(rs.next()) {
+					try (PreparedStatement ps2 = con.prepareStatement("DELETE FROM usermfa WHERE user_id =? and otp_session_info = ? and otp = ?");) {
+						ps2.setString(1, user_id);
+						ps2.setString(2, sessionInfo);
+						ps2.setString(3, otpCode);
+						ps2.executeUpdate();
+						JsonWebToken jwt = new JsonWebToken();
+						return jwt.MfaEnrolledUserIDToken(userEmail);
+					} catch (Exception e) {
+						e.printStackTrace();
+						return new JSONObject().put("error", "server problem");
+					}
 				}
+				return new JSONObject().put("error", "Invalid otp");
 			}
-			ps.close();
-			con.close();
-			return new JSONObject().put("error", "Invalid otp");
 		} catch (Exception e) {
 			e.printStackTrace();
 			return new JSONObject().put("error", "server problem");

@@ -13,9 +13,8 @@ import org.json.JSONObject;
 public class UserSessionClass {
 	
 	private DataSource dataSource;
-	private Connection con;
 	
-	public void init() throws ServletException {
+	public UserSessionClass() {
 		try {
 			Context initContext  = new InitialContext();
 			Context envContext  = (Context)initContext.lookup("java:/comp/env");
@@ -27,71 +26,56 @@ public class UserSessionClass {
 	
 	// Fetching user active sessions from database
 	public JSONObject UserActiveSessions(String user_id) throws ServletException {
-		init();
 		JSONObject obj = new JSONObject();
 	
-		try {
-			con = dataSource.getConnection();
-			String sessionQuery = "select session from usercredentials.usersession Where user_id = ? ;";
-			
-			PreparedStatement ps = con.prepareStatement(sessionQuery);
+		try (
+			Connection con = dataSource.getConnection();
+			PreparedStatement ps = con.prepareStatement("select session from usercredentials.usersession Where user_id = ? ;");
+		) {
 			ps.setString(1, user_id);
-			ResultSet rs = ps.executeQuery();
-			while(rs.next()) {
-				String temp = "session";
-				obj.put(rs.getString(1), temp);
+			try (ResultSet rs = ps.executeQuery()){
+				while(rs.next()) {
+					obj.put(rs.getString(1), "session");
+				}
 			}
-			ps.close();
-			con.close();
-		} 
-		catch (Exception e) {
-			System.out.println("In user active session method: "+ e.getMessage());
 		}
-		
+		catch (Exception e) {
+			obj.put("error", "Internal error");
+			e.printStackTrace();
+		}
 		return obj;
 	}
 	
 	// Delete user session value from database
 	public boolean TerminateUserSession(String sessionValue) throws ServletException {
-		init();
-		boolean teminationStatus = true;
 		
-		try {
-
-			con = dataSource.getConnection();
-			String sessionDelete = "DELETE FROM usersession WHERE session = ? ;";
-			PreparedStatement ps = con.prepareStatement(sessionDelete);
+		try (
+			Connection con = dataSource.getConnection();
+			PreparedStatement ps = con.prepareStatement("DELETE FROM usersession WHERE session = ? ;");
+		) {
 			ps.setString(1, sessionValue);
-			ps.execute();
-			
-			ps.close();
-			con.close();
+			ps.executeUpdate();
+			return true;
 		} 
 		catch (Exception e) {
-			teminationStatus = false;
-			System.out.println("In Terminate User Session Method "+ e.getMessage());
+			e.printStackTrace();
+			return false;
 		}
-		return teminationStatus;
 	}
 	
 	// Checking user session status
 	public boolean UserSesionStatus(String sessionValue) throws ServletException {
-		init();
-		boolean sessionStatus = false;
-		try {
-			
-			con = dataSource.getConnection();
-			String sessionStatusQuery = "SELECT * FROM usersession WHERE session = ? ;";
-			PreparedStatement ps = con.prepareStatement(sessionStatusQuery);
+		try (
+			Connection con = dataSource.getConnection();
+			PreparedStatement ps = con.prepareStatement("SELECT * FROM usersession WHERE session = ? ;");
+		) {
 			ps.setString(1, sessionValue);
-			ResultSet rs = ps.executeQuery();
-			sessionStatus = rs.next();
-			
-			ps.close();
-			con.close();
+			try (ResultSet rs = ps.executeQuery()){
+				return rs.next();
+			}
 		} catch (Exception e) {
-			System.out.println("In User Session Status " + e.getMessage());
+			e.printStackTrace();
+			return false;
 		}
-		return sessionStatus;
 	}
 }

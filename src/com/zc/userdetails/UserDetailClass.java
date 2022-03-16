@@ -5,17 +5,13 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 
-import javax.naming.Context;
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
-import javax.sql.DataSource;
-
 import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 
 import org.json.JSONObject;
 
+import com.zc.database.Database;
 import com.zc.hashgenerator.HashGenerator;
 import com.zc.mfacredentials.SessionInfoGenerator;
 
@@ -25,22 +21,10 @@ public class UserDetailClass {
 			"HTTP_X_FORWARDED_FOR", "HTTP_X_FORWARDED", "HTTP_X_CLUSTER_CLIENT_IP", "HTTP_CLIENT_IP",
 			"HTTP_FORWARDED_FOR", "HTTP_FORWARDED", "HTTP_VIA", "REMOTE_ADDR" };
 
-	private DataSource dataSource;
-
-	public UserDetailClass() {
-		try {
-			Context initContext = new InitialContext();
-			Context envContext = (Context) initContext.lookup("java:/comp/env");
-			dataSource = (DataSource) envContext.lookup("jdbc/usercredentialsDB");
-		} catch (NamingException e) {
-			e.printStackTrace();
-		}
-	}
-	
 	// Validate user email present in database or not
 	public boolean EmailValidate(String useremail) throws ServletException {
 		try (
-			Connection con = dataSource.getConnection();
+			Connection con = Database.getConnection();
 			PreparedStatement ps = con.prepareStatement("SELECT * from useremail WHERE user_email = ?");
 		) {
 			ps.setString(1, useremail);
@@ -55,7 +39,7 @@ public class UserDetailClass {
 
 	public String GetHashedPassword(String userId, String password) {
 		try (
-			Connection con = dataSource.getConnection();
+			Connection con = Database.getConnection();
 			PreparedStatement ps = con.prepareStatement("SELECT bytesalt from userdetail WHERE user_id = ?");
 		){
 			ps.setString(1, userId);
@@ -76,7 +60,7 @@ public class UserDetailClass {
 	// validate password entered by user is correct or not
 	public boolean PasswordValidate(String useremail, String password) throws ServletException {
 		try (
-			Connection con = dataSource.getConnection();
+			Connection con = Database.getConnection();
 			PreparedStatement ps = con.prepareStatement("SELECT * from userdetail WHERE user_id = ? and password = ?");
 		) {
 			String user_id = GetUserId(useremail);
@@ -102,7 +86,7 @@ public class UserDetailClass {
 	// ADD new session into database
 	public boolean AddSession(String sessionId, String email) throws ServletException {
 		try (
-			Connection con = dataSource.getConnection();
+			Connection con = Database.getConnection();
 			PreparedStatement ps = con.prepareStatement("insert into usersession (user_id,session) values(?,?)");
 		) {
 			ps.setString(1, GetUserId(email));
@@ -129,7 +113,7 @@ public class UserDetailClass {
 		String getid = "SELECT user_id from usersession WHERE session = ?";
 		String user_id = null;
 		try (
-			Connection con = dataSource.getConnection();
+			Connection con = Database.getConnection();
 			PreparedStatement ps = con.prepareStatement(getid);
 		) {
 			ps.setString(1, sessionValue);
@@ -147,7 +131,7 @@ public class UserDetailClass {
 	public String GetUserId(String useremail) throws ServletException {
 		String user_id = null;
 		try (
-			Connection con = dataSource.getConnection();
+			Connection con = Database.getConnection();
 			PreparedStatement ps = con.prepareStatement("SELECT user_id from useremail WHERE user_email = ?");
 		) {
 			ps.setString(1, useremail);
@@ -165,7 +149,7 @@ public class UserDetailClass {
 	public String GetUserName(String user_id) throws ServletException {
 		String username = null;
 		try (
-			Connection con = dataSource.getConnection();
+			Connection con = Database.getConnection();
 			PreparedStatement ps = con.prepareStatement("SELECT first_name, last_name from userdetail where user_id = ?");
 		) {
 			ps.setString(1, user_id);
@@ -185,7 +169,7 @@ public class UserDetailClass {
 
 	public boolean setUserOTP(String user_id, String otp, String session_info) throws ServletException {
 		try (
-			Connection con = dataSource.getConnection();
+			Connection con = Database.getConnection();
 			PreparedStatement ps = con.prepareStatement("insert into usermfa(user_id, otp, otp_session_info, auth_info) value(?,?,?,?)");
 		) {
 			ps.setString(1, user_id);
@@ -206,7 +190,7 @@ public class UserDetailClass {
 		String user_id = GetUserId(useremail);
 
 		try (
-			Connection con = dataSource.getConnection();
+			Connection con = Database.getConnection();
 			PreparedStatement ps = con.prepareStatement("SELECT * from usermfa WHERE user_id = ? and otp = ? and otp_session_info = ? and auth_info = ?");
 			){
 			ps.setString(1, user_id);
@@ -245,7 +229,7 @@ public class UserDetailClass {
 
 	public boolean loginAuthValidation(String email, String authInfo) throws ServletException {
 		try (
-			Connection con = dataSource.getConnection();
+			Connection con = Database.getConnection();
 			PreparedStatement ps = con.prepareStatement("SELECT * from usermfa WHERE user_id = ? and auth_info = ?");
 		) {
 			ps.setString(1, GetUserId(email));
@@ -263,7 +247,7 @@ public class UserDetailClass {
 	
 	public boolean removeAuthInfo(String email, String authInfo) throws ServletException {
 		try (
-			Connection con = dataSource.getConnection();
+			Connection con = Database.getConnection();
 			PreparedStatement ps = con.prepareStatement("DELETE FROM usermfa WHERE user_id =? and auth_info = ?");
 		) {
 			ps.setString(1, GetUserId(email));
@@ -278,7 +262,7 @@ public class UserDetailClass {
 	
 	public JSONObject GetUserMFAEnrollmentID(String email) {
 		try (
-			Connection con = dataSource.getConnection();
+			Connection con = Database.getConnection();
 			PreparedStatement ps = con.prepareStatement("SELECT mfaId FROM usermultifactor WHERE user_id =?");
 		) {
 			ps.setString(1, GetUserId(email));
@@ -295,7 +279,7 @@ public class UserDetailClass {
 	
 	public ArrayList<String> GetUserEmails(String email) {
 		try (
-			Connection con = dataSource.getConnection();
+			Connection con = Database.getConnection();
 			PreparedStatement ps = con.prepareStatement("select user_email from useremail Where user_id = ?");
 		) {
 			ps.setString(1, GetUserId(email));
@@ -318,7 +302,7 @@ public class UserDetailClass {
 
 	public String GetUserEmail(int email_id) {
 		try (
-			Connection con = dataSource.getConnection();
+			Connection con = Database.getConnection();
 			PreparedStatement ps = con.prepareStatement("select user_email from useremail Where auto_email_id = ?");
 		) {
 			ps.setInt(1, email_id);
@@ -335,7 +319,7 @@ public class UserDetailClass {
 	
 	public int GetUserEmailID (String email) {
 		try (
-			Connection con = dataSource.getConnection();
+			Connection con = Database.getConnection();
 			PreparedStatement ps = con.prepareStatement("select auto_email_id from useremail Where user_email = ?");
 		) {
 			ps.setString(1, email);
@@ -351,8 +335,8 @@ public class UserDetailClass {
 	}
 
 	public ArrayList<Integer> GetUserEmailID(ArrayList<String> emails){
+		
 		try {
-			
 			ArrayList<Integer> emailIds = new ArrayList<Integer>();
 			emails.forEach(email -> {
 				emailIds.add(GetUserEmailID(email));
@@ -367,7 +351,7 @@ public class UserDetailClass {
 	
 	public JSONObject UserMfaEnrollmentStatus(String email) {
 		try (
-			Connection con = dataSource.getConnection();
+			Connection con = Database.getConnection();
 			PreparedStatement ps = con.prepareStatement("SELECT mfaEnrolled FROM userdetail WHERE user_id = ?");
 		) {
 			String userId = GetUserId(email);

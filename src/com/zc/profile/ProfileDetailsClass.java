@@ -1,34 +1,21 @@
 package com.zc.profile;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 
-import javax.naming.Context;
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
 import javax.servlet.ServletException;
-import javax.sql.DataSource;
 
+import com.zc.database.Database;
 import org.json.JSONObject;
 
 public class ProfileDetailsClass {
-	
-	private DataSource dataSource;
-	
-	public ProfileDetailsClass() {
-		try {
-			Context initContext  = new InitialContext();
-			Context envContext  = (Context)initContext.lookup("java:/comp/env");
-			dataSource = (DataSource)envContext.lookup("jdbc/usercredentialsDB");
-		} catch (NamingException e) {
-			e.printStackTrace();
-		}
-	}
 	
 	public JSONObject UserDetails(String user_id) throws ServletException {
 		JSONObject udobj = new JSONObject();
 		
 		try (
-			Connection con = dataSource.getConnection();
+			Connection con = Database.getConnection();
 			PreparedStatement ps = con.prepareStatement("select * from userdetail where user_id = ?");
 		) {
 			ps.setString(1, user_id);
@@ -61,7 +48,7 @@ public class ProfileDetailsClass {
 	
 	public boolean UpdateProfile(String firstname, String lastname, String gender, String country, String user_id) throws ServletException {
 		try (
-			Connection con = dataSource.getConnection();
+			Connection con = Database.getConnection();
 			PreparedStatement ps = con.prepareStatement("update userdetail set first_name = ?,last_name = ?,gender = ?,country = ? where user_id =?");
 			) {
 			ps.setString(1, firstname);

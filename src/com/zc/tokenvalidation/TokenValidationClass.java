@@ -6,33 +6,20 @@ import java.sql.ResultSet;
 
 import javax.mail.MessagingException;
 import javax.mail.internet.AddressException;
-import javax.naming.Context;
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
 import javax.servlet.ServletException;
-import javax.sql.DataSource;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import com.zc.database.Database;
 import com.zc.sendemailotp.SendEmailOTP;
 import com.zc.userdetails.UserDetailClass;
 import com.zc.JWT.JsonWebToken;
 
 public class TokenValidationClass {
 	
-	private DataSource dataSource;
 	boolean emailIdStatus = false;
-	
-	public TokenValidationClass() {
-		try {
-			Context initContext = new InitialContext();
-			Context envContext = (Context) initContext.lookup("java:/comp/env");
-			dataSource = (DataSource) envContext.lookup("jdbc/usercredentialsDB");
-		} catch (NamingException e) {
-			e.printStackTrace();
-		}
-	}
 	
 	public JSONObject mfaSignInStart(JSONObject tokenClaims, int otpEmailId) {
 		try {
@@ -88,7 +75,7 @@ public class TokenValidationClass {
 	
 	public JSONObject otpSessionValidation(JSONObject tokenClaims, String otpCode, String sessionInfo) {
 		try (
-			Connection con = dataSource.getConnection();
+			Connection con = Database.getConnection();
 			PreparedStatement ps = con.prepareStatement("SELECT * from usermfa WHERE user_id = ? and otp = ? and otp_session_info = ? and auth_info = ?");
 		) {
 			UserDetailClass udc = new UserDetailClass();

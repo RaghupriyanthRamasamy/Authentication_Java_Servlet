@@ -4,30 +4,15 @@ import java.security.SecureRandom;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 
-import javax.naming.Context;
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
 import javax.servlet.ServletException;
-import javax.sql.DataSource;
 
 import org.json.JSONObject;
 
+import com.zc.database.Database;
 import com.zc.hashgenerator.HashGenerator;
 
 public class RegisterClass {
 
-	private DataSource dataSource;
-	
-	public RegisterClass() {
-		try {
-			Context initContext  = new InitialContext();
-			Context envContext  = (Context)initContext.lookup("java:/comp/env");
-			dataSource = (DataSource)envContext.lookup("jdbc/usercredentialsDB");
-		} catch (NamingException e) {
-			e.printStackTrace();
-		}
-	}
-	
 	public String UserIdGenerator() {
 		int n = 10;
 		SecureRandom random = new SecureRandom();
@@ -48,7 +33,7 @@ public class RegisterClass {
 		HashGenerator hg = new HashGenerator();
 		
 		try (
-			Connection con = dataSource.getConnection();
+			Connection con = Database.getConnection();
 			PreparedStatement ps = con.prepareStatement("insert into usercredentials.userdetail(user_id, first_name, last_name, password, bytesalt) value(?,?,?,?,?)");
 			) {
 			

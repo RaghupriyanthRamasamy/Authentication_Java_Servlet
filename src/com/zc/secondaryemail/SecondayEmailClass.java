@@ -5,32 +5,17 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import javax.naming.Context;
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
 import javax.servlet.ServletException;
-import javax.sql.DataSource;
 
+import com.zc.database.Database;
 import org.json.JSONObject;
 
 public class SecondayEmailClass {
 
-	private DataSource dataSource;
-	
-	public SecondayEmailClass() {
-		try {
-			Context initContext  = new InitialContext();
-			Context envContext  = (Context)initContext.lookup("java:/comp/env");
-			dataSource = (DataSource)envContext.lookup("jdbc/usercredentialsDB");
-		} catch (NamingException e) {
-			e.printStackTrace();
-		}
-	}
-	
 	// Add secondary email to user
 	public boolean AddSecondaryEmail(String user_id, String sec_email) throws ServletException {
 		try (
-			Connection con = dataSource.getConnection();
+			Connection con = Database.getConnection();
 			PreparedStatement ps = con.prepareStatement("insert into useremail (user_id, user_email, email_status) value(?,?,?);");
 		) {
 			ps.setString(1, user_id);
@@ -49,7 +34,7 @@ public class SecondayEmailClass {
 		JSONObject obj = new JSONObject();
 		
 		try (
-			Connection con = dataSource.getConnection();
+			Connection con = Database.getConnection();
 			PreparedStatement ps = con.prepareStatement("select user_email from usercredentials.useremail Where user_id = ? AND email_status = ? ;");
 		) {
 			ps.setString(1, user_id);
@@ -69,7 +54,7 @@ public class SecondayEmailClass {
 	// Remove secondary email
 	public boolean RemoveSecondaryEmail(String secEmail) throws ServletException {
 		try (
-			Connection con = dataSource.getConnection();
+			Connection con = Database.getConnection();
 			PreparedStatement ps = con.prepareStatement("DELETE FROM useremail WHERE user_email = ?");
 		) {
 			ps.setString(1, secEmail);
@@ -84,7 +69,7 @@ public class SecondayEmailClass {
 	// Change secondary email to primary email
 	public boolean SecondaryToPrimary(String user_id, String primaryEmail, String secondaryEmail) throws ServletException {
 		try (
-			Connection con = dataSource.getConnection();
+			Connection con = Database.getConnection();
 			PreparedStatement ps = con.prepareStatement("UPDATE useremail SET email_Status = ? WHERE user_id = ? AND user_email = ?;");
 		) {
 			ps.setInt(1, 0);
